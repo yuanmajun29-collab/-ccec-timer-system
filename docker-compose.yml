@@ -1,0 +1,84 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: ccec-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  oracle:
+    image: gvenzl/oracle-free:23-slim
+    container_name: ccec-oracle
+    environment:
+      ORACLE_PASSWORD: ${ORACLE_SYS_PASSWORD:-Oracle_123}
+      APP_USER: ${ORACLE_APP_USER:-CCEC_TIMER}
+      APP_USER_PASSWORD: ${ORACLE_APP_PASSWORD:-CCEC_TIMER_123}
+    ports:
+      - "${ORACLE_PORT:-1521}:1521"
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+    healthcheck:
+      test: ["CMD-SHELL", "healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 20
+    restart: unless-stopped
+
+  timer-backend:
+    build:
+      context: ./java/timer-backend
+    container_name: ccec-timer-backend
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:oracle:thin:@//oracle:1521/FREEPDB1
+      SPRING_DATASOURCE_USERNAME: ${ORACLE_APP_USER:-CCEC_TIMER}
+      SPRING_DATASOURCE_PASSWORD: ${ORACLE_APP_PASSWORD:-CCEC_TIMER_123}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+    depends_on:
+      redis:
+        condition: service_healthy
+      oracle:
+        condition: service_healthy
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    restart: unless-stopped
+
+  plc-collector:
+    build:
+      context: ./cpp/plc-collector
+    container_name: ccec-plc-collector
+    environment:
+      PLC_HOST: ${PLC_HOST:-128.10.40.10}
+      PLC_RACK: ${PLC_RACK:-0}
+      PLC_SLOT: ${PLC_SLOT:-1}
+      REDIS_URL: redis://redis:6379
+      POLL_INTERVAL_MS: ${POLL_INTERVAL_MS:-500}
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: ccec-nginx
+    ports:
+      - "${HTTP_PORT:-80}:80"
+    volumes:
+      - ./deploy/nginx/ccec-timer.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./frontend/station-screen:/usr/share/nginx/html:ro
+    depends_on:
+      - timer-backend
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+  oracle-data:

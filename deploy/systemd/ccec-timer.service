@@ -1,0 +1,16 @@
+[Unit]
+Description=CCEC Timer System Docker Compose Stack
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/ccec-timer/ccec-timer-system
+ExecStart=/usr/bin/docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env up -d
+ExecStop=/usr/bin/docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env down
+RemainAfterExit=yes
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target

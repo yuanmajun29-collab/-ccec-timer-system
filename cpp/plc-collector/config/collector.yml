@@ -1,0 +1,11 @@
+plc:
+  - code: PLC_KV_ASSEMBLY
+    host: 128.10.40.10
+    rack: 0
+    slot: 1
+    dbNumber: 100
+    pollIntervalMs: 500
+redis:
+  url: redis://127.0.0.1:6379
+localCache:
+  path: D:/CCEC-Timer/data/cache/pending-events.log

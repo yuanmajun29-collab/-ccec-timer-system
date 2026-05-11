@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>CCEC 工位倒计时屏</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body{margin:0;font-family:Arial,"Microsoft YaHei",sans-serif;background:#111;color:#fff}
+    .wrap{height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .station{font-size:7vw;font-weight:700}
+    .timer{font-size:18vw;font-weight:900;letter-spacing:.04em}
+    .meta{font-size:3vw;opacity:.9}
+    .status{margin-top:2vh;padding:1vh 3vw;border-radius:2vw;background:#444;font-size:3vw}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="station" id="station">A601</div>
+  <div class="timer" id="timer">--:--</div>
+  <div class="meta" id="meta">等待工位数据</div>
+  <div class="status" id="status">OFFLINE</div>
+</div>
+<script>
+const params = new URLSearchParams(location.search);
+const station = params.get('station') || 'A601';
+document.getElementById('station').textContent = station;
+const wsProto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+const ws = new WebSocket(`${wsProto}//${location.host}/ws/station/${station}`);
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  const remain = Math.max(0, data.remain || 0);
+  const m = String(Math.floor(remain / 60)).padStart(2, '0');
+  const s = String(remain % 60).padStart(2, '0');
+  document.getElementById('timer').textContent = `${m}:${s}`;
+  document.getElementById('meta').textContent = `${data.so || '-'} / ${data.esn || '-'} / ${data.engineType || '-'}`;
+  document.getElementById('status').textContent = data.status || 'UNKNOWN';
+};
+ws.onclose = () => document.getElementById('status').textContent = 'OFFLINE';
+</script>
+</body>
+</html>

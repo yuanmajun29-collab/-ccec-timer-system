@@ -1,0 +1,47 @@
+groups:
+  - name: ccec-timer-system
+    rules:
+      - alert: BackendDown
+        expr: up{job="timer-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Java 后端不可用"
+          description: "timer-backend /actuator/prometheus 连续 1 分钟无法采集。"
+
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis 不可用"
+          description: "Redis exporter 连续 1 分钟不可采集。"
+
+      - alert: HighHostCpu
+        expr: 100 - (avg by(instance)(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "主机 CPU 使用率过高"
+          description: "CPU 使用率超过 85%，持续 10 分钟。"
+
+      - alert: HighHostMemory
+        expr: (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 > 90
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "主机内存使用率过高"
+          description: "内存使用率超过 90%，持续 10 分钟。"
+
+      - alert: LowDiskSpace
+        expr: (1 - node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"}) * 100 > 85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "磁盘空间不足"
+          description: "磁盘使用率超过 85%，请清理日志或扩容。"

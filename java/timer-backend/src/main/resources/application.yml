@@ -1,0 +1,18 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:oracle:thin:@//127.0.0.1:1521/ORCLPDB1
+    username: CCEC_TIMER
+    password: ${ORACLE_PASSWORD:change_me}
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+
+timer:
+  websocket:
+    heartbeatSeconds: 30
+  ct:
+    defaultSeconds: 300
