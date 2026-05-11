@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CCEC 管理登录</title>
+  <link rel="stylesheet" href="./css/console.css">
+</head>
+<body class="auth-body">
+<div class="auth-card">
+  <h1>CCEC 工位倒计时</h1>
+  <p class="muted">运营管理控制台 · 会话登录（可替换为企业 AD/LDAP）</p>
+  <form id="form">
+    <label>用户名</label>
+    <input id="username" name="username" autocomplete="username" required>
+    <label>密码</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required>
+    <p id="err" class="error" hidden></p>
+    <button type="submit">登录</button>
+  </form>
+</div>
+<script src="./js/api.js"></script>
+<script>
+document.getElementById('form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const err = document.getElementById('err');
+  err.hidden = true;
+  try {
+    await CcecApi.ensureCsrf();
+    const r = await fetch('/api/v1/auth/login', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json', ...CcecApi.csrfHeaders() },
+      body: JSON.stringify({
+        username: document.getElementById('username').value.trim(),
+        password: document.getElementById('password').value
+      })
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      err.textContent = data.error === 'INVALID_CREDENTIALS' ? '用户名或密码错误' : '登录失败';
+      err.hidden = false;
+      return;
+    }
+    location.href = './index.html';
+  } catch (x) {
+    err.textContent = '网络异常';
+    err.hidden = false;
+  }
+});
+</script>
+</body>
+</html>

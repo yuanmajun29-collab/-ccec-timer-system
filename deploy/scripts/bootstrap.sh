@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cd "$(dirname "$0")/../.."
-[ -f .env ] || cp .env.example .env
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+cd "$ROOT"
+
+"$ROOT/deploy/scripts/prerequisites.sh"
+[[ -f .env ]] || cp .env.example .env
+
 docker compose up -d --build
 docker compose ps
-echo "Open: http://localhost/?station=A601"
+
+"$ROOT/deploy/scripts/wait-for-backend.sh" 600 3
+"$ROOT/deploy/scripts/print-endpoints.sh"

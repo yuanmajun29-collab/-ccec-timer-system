@@ -10,7 +10,8 @@
     .station{font-size:7vw;font-weight:700}
     .timer{font-size:18vw;font-weight:900;letter-spacing:.04em}
     .meta{font-size:3vw;opacity:.9}
-    .status{margin-top:2vh;padding:1vh 3vw;border-radius:2vw;background:#444;font-size:3vw}
+    .status{margin-top:2vh;padding:1vh 3vw;border-radius:2vw;background:#444;font-size:3vw;border:3px solid transparent}
+    .hint{font-size:2.2vw;margin-top:2vh;opacity:.55}
   </style>
 </head>
 <body>
@@ -18,24 +19,72 @@
   <div class="station" id="station">A601</div>
   <div class="timer" id="timer">--:--</div>
   <div class="meta" id="meta">等待工位数据</div>
-  <div class="status" id="status">OFFLINE</div>
+  <div class="status" id="status">CONNECTING</div>
+  <div class="hint" id="hint"></div>
 </div>
 <script>
 const params = new URLSearchParams(location.search);
 const station = params.get('station') || 'A601';
 document.getElementById('station').textContent = station;
 const wsProto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-const ws = new WebSocket(`${wsProto}//${location.host}/ws/station/${station}`);
-ws.onmessage = (event) => {
-  const data = JSON.parse(event.data);
+const url = `${wsProto}//${location.host}/ws/station/${station}`;
+let ws;
+let reconnectDelayMs = 1000;
+const maxDelayMs = 30000;
+
+function applySnapshot(data) {
   const remain = Math.max(0, data.remain || 0);
   const m = String(Math.floor(remain / 60)).padStart(2, '0');
   const s = String(remain % 60).padStart(2, '0');
   document.getElementById('timer').textContent = `${m}:${s}`;
   document.getElementById('meta').textContent = `${data.so || '-'} / ${data.esn || '-'} / ${data.engineType || '-'}`;
-  document.getElementById('status').textContent = data.status || 'UNKNOWN';
-};
-ws.onclose = () => document.getElementById('status').textContent = 'OFFLINE';
+  const st = document.getElementById('status');
+  st.textContent = data.status || 'UNKNOWN';
+  const colorMap = {
+    GREEN: '#1a3d1a',
+    YELLOW: '#4d4000',
+    RED: '#4d1515',
+    BLUE: '#152a4d',
+    PURPLE: '#301540',
+    GRAY: '#333'
+  };
+  const bg = colorMap[data.color] || '#333';
+  st.style.background = bg;
+  st.style.borderColor = data.color === 'GREEN' ? '#3fb950' : data.color === 'YELLOW' ? '#d29922' : data.color === 'RED' ? '#f85149' : 'transparent';
+}
+
+function setHint(msg) {
+  document.getElementById('hint').textContent = msg || '';
+}
+
+function connect() {
+  setHint('正在连接 WebSocket…');
+  ws = new WebSocket(url);
+  ws.onopen = () => {
+    reconnectDelayMs = 1000;
+    setHint('');
+    document.getElementById('status').textContent = 'WAIT_DATA';
+  };
+  ws.onmessage = (event) => {
+    try {
+      applySnapshot(JSON.parse(event.data));
+    } catch (e) {
+      /* ignore */
+    }
+  };
+  ws.onclose = () => {
+    document.getElementById('status').textContent = 'OFFLINE';
+    setHint(`${reconnectDelayMs / 1000}s 后重连`);
+    setTimeout(() => {
+      reconnectDelayMs = Math.min(maxDelayMs, reconnectDelayMs * 2);
+      connect();
+    }, reconnectDelayMs);
+  };
+  ws.onerror = () => {
+    try { ws.close(); } catch (e) {}
+  };
+}
+connect();
 </script>
 </body>
 </html>

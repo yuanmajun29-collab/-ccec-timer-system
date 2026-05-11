@@ -1,5 +1,6 @@
 #pragma once
 #include "StationEvent.hpp"
+#include <chrono>
 #include <string>
 #include <vector>
 
@@ -16,4 +17,5 @@ private:
     int slot_;
     bool connected_{false};
     int64_t mockSeq_{0};
+    std::chrono::steady_clock::time_point lastEmit_{};
 };

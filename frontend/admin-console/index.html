@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CCEC 运营管理</title>
+  <link rel="stylesheet" href="./css/console.css">
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <h2>运营管理</h2>
+    <nav>
+      <button type="button" data-tab="stations" class="active">工位主数据</button>
+      <button type="button" data-tab="ct">CT 配置</button>
+      <button type="button" data-tab="alarms">告警记录</button>
+      <button type="button" data-tab="production">生产记录</button>
+      <button type="button" data-tab="audit">审计日志</button>
+    </nav>
+    <div class="foot">
+      <div id="who">—</div>
+      <button type="button" id="logout">退出登录</button>
+    </div>
+  </aside>
+  <main>
+    <section id="tab-stations">
+      <h1>工位主数据（T_STATION）</h1>
+      <div class="panel">
+        <h3>新增 / 编辑</h3>
+        <input type="hidden" id="st-id">
+        <div class="form-grid">
+          <div><label>工位编码</label><input id="st-code" placeholder="A602"></div>
+          <div><label>名称</label><input id="st-name"></div>
+          <div><label>产线</label><input id="st-line"></div>
+          <div><label>屏编码</label><input id="st-screen-code"></div>
+          <div><label>屏 IP</label><input id="st-screen-ip"></div>
+          <div><label>PLC 编码</label><input id="st-plc"></div>
+          <div><label>启用</label><input id="st-enabled" type="checkbox" checked></div>
+        </div>
+        <div class="toolbar" style="margin-top:.75rem">
+          <button type="button" id="st-save">保存</button>
+          <button type="button" id="st-clear">清空表单</button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <button type="button" id="st-reload">刷新列表</button>
+      </div>
+      <table class="data" id="st-table">
+        <thead><tr><th>编码</th><th>名称</th><th>产线</th><th>PLC</th><th>启用</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section id="tab-ct" class="hidden">
+      <h1>CT 配置（T_CT_CONFIG）</h1>
+      <div class="panel">
+        <h3>新增 / 编辑</h3>
+        <input type="hidden" id="ct-id">
+        <div class="form-grid">
+          <div><label>配置版本</label><input id="ct-ver" value="v1"></div>
+          <div><label>机型（空=工位默认）</label><input id="ct-engine" placeholder="QSK60"></div>
+          <div><label>工位编码</label><input id="ct-station"></div>
+          <div><label>标准 CT 秒</label><input id="ct-sec" type="number" value="300"></div>
+          <div><label>预警比例</label><input id="ct-warn" type="number" step="0.01" value="0.7"></div>
+          <div><label>告警比例</label><input id="ct-alarm" type="number" step="0.01" value="0.9"></div>
+          <div><label>音效策略</label><input id="ct-sound" placeholder="可选"></div>
+          <div><label>生效时间 ISO</label><input id="ct-eff" placeholder="2026-05-12T08:00:00+08:00"></div>
+          <div><label>启用</label><input id="ct-enabled" type="checkbox" checked></div>
+        </div>
+        <div class="toolbar" style="margin-top:.75rem">
+          <button type="button" id="ct-save">保存</button>
+          <button type="button" id="ct-clear">清空表单</button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <input id="ct-filter-station" placeholder="按工位筛选">
+        <button type="button" id="ct-reload">刷新</button>
+      </div>
+      <table class="data" id="ct-table">
+        <thead><tr><th>工位</th><th>机型</th><th>CT(s)</th><th>预警</th><th>告警</th><th>生效</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section id="tab-alarms" class="hidden">
+      <h1>告警记录</h1>
+      <div class="toolbar">
+        <select id="al-status">
+          <option value="">全部（最近500条）</option>
+          <option value="OPEN" selected>未关闭</option>
+          <option value="CLOSED">已关闭</option>
+        </select>
+        <button type="button" id="al-reload">刷新</button>
+      </div>
+      <table class="data" id="al-table">
+        <thead><tr><th>时间</th><th>工位</th><th>级别</th><th>描述</th><th>状态</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section id="tab-production" class="hidden">
+      <h1>生产记录</h1>
+      <div class="toolbar">
+        <button type="button" id="pr-prev">上一页</button>
+        <button type="button" id="pr-next">下一页</button>
+        <span id="pr-meta" class="muted"></span>
+      </div>
+      <table class="data" id="pr-table">
+        <thead><tr><th>工位</th><th>SO</th><th>ESN</th><th>标准CT</th><th>实际CT</th><th>开始</th><th>结束</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section id="tab-audit" class="hidden">
+      <h1>审计日志</h1>
+      <div class="toolbar">
+        <button type="button" id="au-prev">上一页</button>
+        <button type="button" id="au-next">下一页</button>
+        <span id="au-meta" class="muted"></span>
+      </div>
+      <table class="data" id="au-table">
+        <thead><tr><th>时间</th><th>用户</th><th>操作</th><th>对象</th><th>ID</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
+</div>
+<script src="./js/api.js"></script>
+<script src="./js/app.js"></script>
+</body>
+</html>

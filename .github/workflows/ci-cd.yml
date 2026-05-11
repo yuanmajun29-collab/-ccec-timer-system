@@ -13,6 +13,25 @@ env:
   IMAGE_NAMESPACE: ${{ github.repository }}
 
 jobs:
+  android-kiosk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Assemble station-kiosk (Debug)
+        working-directory: android/station-kiosk
+        run: chmod +x gradlew && ./gradlew :app:assembleDebug --no-daemon --stacktrace
+
   build-test:
     runs-on: ubuntu-latest
     permissions:
@@ -21,6 +40,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Validate Docker Compose
+        run: |
+          set -euo pipefail
+          docker compose -f docker-compose.yml config --quiet
+          docker compose -f docker-compose.yml -f docker-compose.prod.yml config --quiet
+          echo "docker compose config OK (base + prod merge)"
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -91,7 +117,7 @@ jobs:
           labels: ${{ steps.meta_collector.outputs.labels }}
 
   deploy:
-    needs: build-test
+    needs: [build-test, android-kiosk]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     environment: production

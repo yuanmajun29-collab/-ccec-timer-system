@@ -10,9 +10,23 @@ spring:
     redis:
       host: 127.0.0.1
       port: 6379
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
 
 timer:
   websocket:
     heartbeatSeconds: 30
   ct:
     defaultSeconds: 300
+  mqtt:
+    enabled: false
+    broker-uri: tcp://127.0.0.1:1883
+    topic-prefix: ccec/station
+    qos: 1
+    retained: true
+  redis:
+    stream-key: station:event:queue
+    consumer-group: timer-backend
+    status-key-prefix: "station:status:"

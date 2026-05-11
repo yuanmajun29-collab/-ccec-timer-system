@@ -31,3 +31,11 @@ timer:
     heartbeatSeconds: 30
   ct:
     defaultSeconds: 300
+  mqtt:
+    enabled: ${TIMER_MQTT_ENABLED:true}
+    broker-uri: ${TIMER_MQTT_BROKER_URI:tcp://mosquitto:1883}
+    username: ${TIMER_MQTT_USERNAME:}
+    password: ${TIMER_MQTT_PASSWORD:}
+    topic-prefix: ${TIMER_MQTT_TOPIC_PREFIX:ccec/station}
+    qos: 1
+    retained: true

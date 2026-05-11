@@ -1,1 +1,12 @@
 .DS_Store
+.vscode/
+
+# Android (station-kiosk)
+android/station-kiosk/.gradle/
+android/station-kiosk/**/build/
+android/station-kiosk/local.properties
+android/station-kiosk/*.iml
+android/station-kiosk/.idea/
+
+# Java local
+java/**/target/

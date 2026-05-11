@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CCEC 工位屏</string>
+    <!-- 首次安装默认地址；现场可在「设置」中修改并写入本机存储 -->
+    <!-- 真机请改为现场 Nginx 地址；模拟器访问本机 Docker 可用 http://10.0.2.2:80 -->
+    <string name="default_server_base_url">http://192.168.1.100:80</string>
+    <string name="default_station_code">A601</string>
+    <string name="settings_title">工位屏设置</string>
+    <string name="hint_base_url">服务器根地址（含端口，无末尾路径）\n例: http://192.168.1.10:80</string>
+    <string name="hint_station">工位编码</string>
+    <string name="save">保存并返回</string>
+    <string name="open_settings_hint">长按左上角打开设置</string>
+
+    <string name="default_mqtt_broker">tcp://192.168.1.100:1883</string>
+    <string name="settings_section_display">显示模式</string>
+    <string name="settings_native_mqtt">使用原生 MQTT + 离线缓存（推荐一体机）</string>
+    <string name="settings_section_mqtt">MQTT（原生模式）</string>
+    <string name="hint_mqtt_broker">Broker 地址（容器默认 tcp://服务器IP:1883；模拟器访问本机 Docker 可用 tcp://10.0.2.2:1883）</string>
+    <string name="hint_mqtt_user">MQTT 用户名（可选）</string>
+    <string name="hint_mqtt_pass">MQTT 密码（可选）</string>
+    <string name="hint_topic_prefix">快照 topic 前缀（与后端一致，默认 ccec/station）</string>
+    <string name="settings_device_hint">设备遥测发布至 ccec/device/{设备ID}/telemetry；远程指令订阅 …/cmd（CLEAR_CACHE 等）。设备 ID 首次启动自动生成。</string>
+
+    <string name="banner_live">实时 · MQTT</string>
+    <string name="banner_cache">离线缓存 · 网络恢复后自动同步</string>
+    <string name="banner_disconnected">未连接 · 等待 MQTT</string>
+
+    <string name="notif_channel_name">工位 MQTT 服务</string>
+    <string name="notif_mqtt_title">CCEC 工位 MQTT</string>
+    <string name="notif_mqtt_text">保持连接、遥测与缓存同步</string>
+</resources>

@@ -2,20 +2,20 @@
 
 ## 1. 总体架构
 
-系统采用“PLC 只读采集 + Redis 事件队列 + Java 状态机 + WebSocket 工位屏”的架构：
+系统采用“PLC 只读采集 + Redis 事件队列 + Java 状态机 + **WebSocket / MQTT** 工位展示 + 运营管理端”的架构（实现细节与运维边界见 `docs/deployment-and-operations-overview.md`）。
 
 ```text
 PLC 镜像 DB
    ↓ 只读采集
 C++ plc-collector
    ↓ 事件发布
-Redis
+Redis Stream
    ↓ 消费/缓存
 Java timer-backend
-   ↓ WebSocket/REST
-Nginx
+   ↓ WebSocket / MQTT(retained 快照) / REST
+Nginx + Mosquitto(可选 Broker)
    ↓
-40 个工位屏 / 管理端
+工位浏览器屏 / 安卓一体机(APK) / 管理端
 ```
 
 ## 2. 模块设计

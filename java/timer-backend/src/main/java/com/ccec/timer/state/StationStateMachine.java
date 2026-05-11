@@ -3,6 +3,7 @@ package com.ccec.timer.state;
 import com.ccec.timer.domain.StationEvent;
 import com.ccec.timer.domain.StationSnapshot;
 import com.ccec.timer.domain.StationStatus;
+import com.ccec.timer.service.CtSecondsResolver;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -13,6 +14,11 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class StationStateMachine {
     private final Map<String, StationContext> contexts = new ConcurrentHashMap<>();
+    private final CtSecondsResolver ctSecondsResolver;
+
+    public StationStateMachine(CtSecondsResolver ctSecondsResolver) {
+        this.ctSecondsResolver = ctSecondsResolver;
+    }
 
     public StationSnapshot apply(StationEvent event) {
         StationContext ctx = contexts.computeIfAbsent(event.stationCode(), code -> {
@@ -22,6 +28,8 @@ public class StationStateMachine {
         });
 
         OffsetDateTime now = OffsetDateTime.now();
+        Long completedActual = null;
+        OffsetDateTime cycleStartForLog = null;
 
         if (event.arriveFlag() && ctx.status == StationStatus.IDLE) {
             ctx.status = StationStatus.RUNNING;
@@ -29,8 +37,12 @@ public class StationStateMachine {
             ctx.esn = event.esn();
             ctx.engineType = event.engineType();
             ctx.startTime = now;
-            ctx.standardCt = resolveCt(event.engineType(), event.stationCode());
+            ctx.standardCt = ctSecondsResolver.resolveStandardCtSeconds(event.engineType(), event.stationCode());
         } else if (event.leaveFlag()) {
+            if (ctx.startTime != null) {
+                completedActual = Math.max(0, Duration.between(ctx.startTime, now).toSeconds() - ctx.holdSeconds);
+                cycleStartForLog = ctx.startTime;
+            }
             ctx.status = StationStatus.IDLE;
             ctx.startTime = null;
         } else if (event.holdFlag() && ctx.status != StationStatus.IDLE) {
@@ -41,25 +53,60 @@ public class StationStateMachine {
             ctx.status = StationStatus.BYPASS;
         }
 
-        return snapshot(ctx, now);
+        return snapshot(ctx, now, completedActual, cycleStartForLog);
     }
 
-    private StationSnapshot snapshot(StationContext ctx, OffsetDateTime now) {
+    private StationSnapshot snapshot(
+            StationContext ctx,
+            OffsetDateTime now,
+            Long leaveCompletedActual,
+            OffsetDateTime leaveCycleStart
+    ) {
+        if (ctx.status == StationStatus.IDLE) {
+            return new StationSnapshot(
+                    ctx.stationCode,
+                    ctx.so,
+                    ctx.esn,
+                    ctx.engineType,
+                    ctx.standardCt,
+                    0,
+                    0,
+                    StationStatus.IDLE,
+                    colorOf(StationStatus.IDLE),
+                    now,
+                    leaveCompletedActual,
+                    leaveCycleStart
+            );
+        }
+
         long elapsed = ctx.startTime == null ? 0 : Math.max(0, Duration.between(ctx.startTime, now).toSeconds() - ctx.holdSeconds);
         if (ctx.status == StationStatus.RUNNING || ctx.status == StationStatus.WARN || ctx.status == StationStatus.ALARM) {
             double ratio = ctx.standardCt == 0 ? 0 : (double) elapsed / ctx.standardCt;
-            if (ratio > 1.0) ctx.status = StationStatus.OVERTIME;
-            else if (ratio > 0.9) ctx.status = StationStatus.ALARM;
-            else if (ratio > 0.7) ctx.status = StationStatus.WARN;
-            else ctx.status = StationStatus.RUNNING;
+            if (ratio > 1.0) {
+                ctx.status = StationStatus.OVERTIME;
+            } else if (ratio > 0.9) {
+                ctx.status = StationStatus.ALARM;
+            } else if (ratio > 0.7) {
+                ctx.status = StationStatus.WARN;
+            } else {
+                ctx.status = StationStatus.RUNNING;
+            }
         }
-        long remain = ctx.standardCt - elapsed;
-        return new StationSnapshot(ctx.stationCode, ctx.so, ctx.esn, ctx.engineType, ctx.standardCt, elapsed, remain, ctx.status, colorOf(ctx.status), now);
-    }
-
-    private int resolveCt(String engineType, String stationCode) {
-        // TODO: 优先查询 T_CT_CONFIG：机型+工位 > 工位默认 > 系统默认。
-        return 300;
+        long remain = Math.max(0, ctx.standardCt - elapsed);
+        return new StationSnapshot(
+                ctx.stationCode,
+                ctx.so,
+                ctx.esn,
+                ctx.engineType,
+                ctx.standardCt,
+                elapsed,
+                remain,
+                ctx.status,
+                colorOf(ctx.status),
+                now,
+                leaveCompletedActual,
+                leaveCycleStart
+        );
     }
 
     private String colorOf(StationStatus status) {

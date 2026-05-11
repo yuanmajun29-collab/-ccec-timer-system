@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 车间内网常使用 HTTP；生产若全站 HTTPS 可收紧为仅信任域或移除 cleartext -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>
