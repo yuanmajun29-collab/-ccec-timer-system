@@ -63,7 +63,7 @@ sudo systemctl start ccec-timer
 
 ## CI/CD 配置
 
-GitHub 仓库需要配置以下 Secrets：
+### Actions Secrets（SSH 部署用）
 
 ```text
 PROD_HOST       生产服务器 IP 或域名
@@ -72,11 +72,21 @@ PROD_SSH_KEY    SSH 私钥
 PROD_SSH_PORT   SSH 端口，可选
 ```
 
-流水线行为：
+### Actions Variables（控制是否自动部署）
 
-1. pull_request：执行 Java 测试、构建 C++/Java Docker 镜像但不推送。
-2. push main：构建、测试、推送镜像到 GHCR，并通过 SSH 执行生产部署。
-3. tag v*：生成对应版本镜像。
+在 **Settings → Secrets and variables → Actions → Variables** 新增：
+
+| 变量名 | 值 | 说明 |
+|--------|-----|------|
+| `ENABLE_SSH_DEPLOY` | `true` | 仅在 **push main** 且为 `true` 时执行 SSH 部署；未设置或非 `true` 时 **跳过部署**，仍构建并推送镜像到 GHCR |
+
+`if` 中不能使用 `secrets`，故用变量显式开关，避免未配密钥时 **main** 流水线整单失败。
+
+### 流水线行为
+
+1. **pull_request → main**：Java 测试、Docker Compose 校验、Android Debug 构建、本地 `docker build` 镜像（不推送 GHCR）。
+2. **push main**：同上 + 推送镜像到 GHCR；**仅当** `ENABLE_SSH_DEPLOY == true` 时执行 SSH `prod-up`。
+3. **tag v\***：生成对应版本镜像并推送。
 
 ## 监控告警
 

@@ -1,3 +1,8 @@
+# CI：PR / 任意分支 push 时跑测试与镜像构建；push main 时推送 GHCR。
+# CD：push main 后是否 SSH 部署由仓库变量 ENABLE_SSH_DEPLOY 控制（Settings → Variables → Actions，设为 true）。
+# 同时需在 Secrets 中配置 PROD_HOST、PROD_USER、PROD_SSH_KEY；可选 PROD_SSH_PORT。未设变量时跳过部署，仅构建推送镜像。
+# 环境 production：Settings → Environments → production（可加固保护分支与审批人）。
+
 name: CI/CD
 
 on:
@@ -15,6 +20,8 @@ env:
 jobs:
   android-kiosk:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -118,7 +125,7 @@ jobs:
 
   deploy:
     needs: [build-test, android-kiosk]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.ENABLE_SSH_DEPLOY == 'true'
     runs-on: ubuntu-latest
     environment: production
     steps:
