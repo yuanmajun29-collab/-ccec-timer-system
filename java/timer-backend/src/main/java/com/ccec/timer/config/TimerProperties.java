@@ -50,8 +50,8 @@ public class TimerProperties {
     }
 
     public static class Redis {
-        /** V8.4.1 / V1.2 §3.6：stream:station:event */
-        private String streamKey = "stream:station:event";
+        /** 与采集端 REDIS_STREAM_KEY / TIMER_REDIS_STREAM_KEY 一致，默认 station:event:queue */
+        private String streamKey = "station:event:queue";
         private String consumerGroup = "timer-backend";
         /** 40 工位快照 Hash：hash:station:state，field=工位编码 */
         private String stateHashKey = "hash:station:state";

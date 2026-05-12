@@ -16,6 +16,9 @@ spring:
     locations: classpath:db/migration
 
 timer:
+  security:
+    default-admin:
+      enabled: false
   websocket:
     heartbeatSeconds: 30
   ct:
@@ -27,6 +30,6 @@ timer:
     qos: 1
     retained: true
   redis:
-    stream-key: stream:station:event
+    stream-key: station:event:queue
     consumer-group: timer-backend
     state-hash-key: hash:station:state

@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Order(100)
+@ConditionalOnProperty(prefix = "timer.security.default-admin", name = "enabled", havingValue = "true", matchIfMissing = false)
 public class DefaultAdminInitializer implements ApplicationRunner {
     private static final Logger log = LoggerFactory.getLogger(DefaultAdminInitializer.class);
 
@@ -41,6 +43,6 @@ public class DefaultAdminInitializer implements ApplicationRunner {
                 "INSERT INTO T_SECURITY_AUTHORITY (USERNAME, AUTHORITY) VALUES (?, ?)",
                 "admin", "ROLE_ADMIN"
         );
-        log.warn("Default admin user created: username=admin password=Admin123! — change password before production.");
+        log.warn("Default admin user created from configuration; change password before production.");
     }
 }

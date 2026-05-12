@@ -66,7 +66,8 @@
 
 **配置要点**
 
-- `.env`：`PLC_*`、`ORACLE_*`、`HTTP_PORT`、`TIMER_MQTT_*`、`MQTT_PORT` 等。
+- `.env`：`PLC_*`、`ORACLE_*`、`HTTP_PORT`、`TIMER_MQTT_*`、`MQTT_PORT`、`REDIS_STREAM_KEY` / `TIMER_REDIS_STREAM_KEY`（默认 `station:event:queue`）等。
+- **默认管理员**：`application.yml` 为关闭；`spring.profiles.active` 含 **`dev`** 或 **`docker`** 时在空库下可自动写入管理员；生产编排可通过环境变量 **`TIMER_SECURITY_DEFAULT_ADMIN_ENABLED=true`** 显式开启（仅首次空库，上线后务必改密并关闭）。
 - 生产：`docker-compose.yml` + `docker-compose.prod.yml`，镜像仓库与 `IMAGE_*` 见 `production-deployment.md`。
 
 **不包含**：车间每台一体机的安卓设置、浏览器主页书签、车间交换机 VLAN（仅建议在文档中约定网络可达性）。
@@ -111,7 +112,7 @@
 |------|------|------------------|
 | **基础设施** | 主机、Docker、磁盘、网络 | `docker compose ps`、节点 exporter、cAdvisor |
 | **应用健康** | Java、Redis、Oracle、Nginx | `/actuator/health`、Redis ping、Oracle 连接 |
-| **业务链路** | PLC → 采集 → Stream → 后端 → WS/MQTT → 屏 | 日志关键字、`stream:station:event`、`hash:station:state`、订阅 MQTT 测试 |
+| **业务链路** | PLC → 采集 → Stream → 后端 → WS/MQTT → 屏 | 日志关键字、`station:event:queue`、`hash:station:state`、订阅 MQTT 测试 |
 | **数据与安全** | Oracle 备份、账号、审计 | `backup-oracle.sh`、`T_AUDIT_LOG`、管理端改密 |
 | **观测与告警** | 指标、日志、告警路由 | Prometheus、Grafana、Loki、Alertmanager（prod 栈） |
 

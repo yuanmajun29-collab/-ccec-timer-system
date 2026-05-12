@@ -35,7 +35,7 @@ public class StationManagementService {
                             SELECT ID, STATION_CODE, STATION_NAME, LINE_CODE, SCREEN_CODE, SCREEN_IP, PLC_CODE, ENABLED, CREATED_AT
                             FROM T_STATION WHERE ID = ?
                             """,
-                    (rs, row) -> row(rs),
+                    (rs, rowNum) -> row(rs),
                     id
             );
             return Optional.ofNullable(row);

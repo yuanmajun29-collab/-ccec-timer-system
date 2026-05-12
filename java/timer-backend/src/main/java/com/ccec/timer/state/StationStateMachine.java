@@ -29,7 +29,7 @@ public class StationStateMachine {
             return c;
         });
 
-        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime now = event.plcTimestamp() != null ? event.plcTimestamp() : OffsetDateTime.now();
         Long completedActual = null;
         OffsetDateTime cycleStartForLog = null;
 
@@ -197,7 +197,7 @@ public class StationStateMachine {
             }
         }
 
-        long remain = ctx.standardCt > 0 ? (long) ctx.standardCt - elapsed : 0;
+        long remain = ctx.standardCt > 0 ? Math.max(0, (long) ctx.standardCt - elapsed) : 0;
         return new StationSnapshot(
                 ctx.stationCode,
                 ctx.so,

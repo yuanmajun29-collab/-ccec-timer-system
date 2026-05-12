@@ -3,7 +3,7 @@
 依据 **docs/V8.4.1** 技术方案与 **概要设计 V1.2 修正版** 的七层工业架构表述（与代码实现对齐）。
 
 ```text
-L1 PLC/RFID → L3 C++ 采集（只读）→ L4 Redis Stream（默认 stream:station:event）
+L1 PLC/RFID → L3 C++ 采集（只读）→ L4 Redis Stream（默认 station:event:queue）
     → L5 Java（状态机、CT、批量 Oracle）→ L6 WSS/MQTT（STATE_UPDATE）→ L7 工位屏 / 管理端
                                       ↘ Oracle / 审计
 ```

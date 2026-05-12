@@ -27,6 +27,10 @@ management:
         enabled: true
 
 timer:
+  security:
+    default-admin:
+      # 与根目录 docker-compose（SPRING_PROFILES_ACTIVE=docker）配套：空库时写入管理员，便于本地/联调
+      enabled: true
   websocket:
     heartbeatSeconds: 30
   ct:

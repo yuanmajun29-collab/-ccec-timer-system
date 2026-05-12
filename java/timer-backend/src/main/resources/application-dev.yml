@@ -1,0 +1,4 @@
+timer:
+  security:
+    default-admin:
+      enabled: true

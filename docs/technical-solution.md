@@ -26,7 +26,7 @@ Nginx + Mosquitto(可选 Broker)
 - 周期读取 PLC 镜像 DB。
 - 解析工位到达、离开、暂停、返修、旁通等信号。
 - 生成 `StationEvent`。
-- 发布到 Redis Stream（默认键名 `stream:station:event`，与 V8.4.1 设计文档 §3.6 一致，可用 `REDIS_STREAM_KEY` 覆盖）。
+- 发布到 Redis Stream（默认键名 `station:event:queue`，与采集端 `REDIS_STREAM_KEY`、后端 `TIMER_REDIS_STREAM_KEY` / `timer.redis.stream-key` 对齐，可用环境变量覆盖）。
 - 断线重连，异常事件本地落盘。
 
 当前工程提供模拟采集实现，方便容器化部署联调。
