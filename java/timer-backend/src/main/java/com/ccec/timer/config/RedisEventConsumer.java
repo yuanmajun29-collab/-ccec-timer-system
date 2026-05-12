@@ -7,6 +7,7 @@ import com.ccec.timer.mqtt.MqttStationPublisher;
 import com.ccec.timer.persistence.AlarmRecordRepository;
 import com.ccec.timer.persistence.ProductionRecordRepository;
 import com.ccec.timer.state.StationStateMachine;
+import com.ccec.timer.ws.StateUpdateMessage;
 import com.ccec.timer.ws.StationWebSocketHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -15,7 +16,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -66,9 +66,10 @@ public class RedisEventConsumer {
         StationSnapshot snapshot = stateMachine.apply(event);
 
         writeStatusCache(snapshot);
-        webSocketHandler.push(event.stationCode(), snapshot);
+        StateUpdateMessage push = StateUpdateMessage.fromSnapshot(snapshot);
+        webSocketHandler.push(event.stationCode(), push);
         if (mqttStationPublisher != null) {
-            mqttStationPublisher.publishSnapshot(snapshot);
+            mqttStationPublisher.publishJson(push);
         }
 
         if (snapshot.completedActualSeconds() != null && snapshot.cycleStartTime() != null) {
@@ -94,15 +95,20 @@ public class RedisEventConsumer {
 
     private void writeStatusCache(StationSnapshot snapshot) {
         try {
-            String key = timerProperties.getRedis().getStatusKeyPrefix() + snapshot.stationCode();
+            String key = timerProperties.getRedis().getStateHashKey();
             String json = objectMapper.writeValueAsString(snapshot);
-            redis.opsForValue().set(key, json, Duration.ofHours(24));
+            redis.opsForHash().put(key, snapshot.stationCode(), json);
         } catch (Exception e) {
             log.debug("Skip Redis status cache: {}", e.getMessage());
         }
     }
 
     private void maybeRaiseCtAlarm(StationSnapshot snapshot, StationStatus previous) {
+        if (snapshot.standardCt() <= 0
+                || snapshot.status() == StationStatus.BYPASS
+                || snapshot.status() == StationStatus.ABNORMAL) {
+            return;
+        }
         StationStatus now = snapshot.status();
         boolean criticalNow = now == StationStatus.ALARM || now == StationStatus.OVERTIME;
         boolean criticalBefore = previous == StationStatus.ALARM || previous == StationStatus.OVERTIME;

@@ -35,7 +35,7 @@ bool EventPublisher::parseRedisUrl(const std::string& url, std::string& host, in
 
 EventPublisher::EventPublisher(std::string redisUrl)
     : redisUrl_(std::move(redisUrl)),
-      streamKey_(envOrDefault("REDIS_STREAM_KEY", "station:event:queue")) {
+      streamKey_(envOrDefault("REDIS_STREAM_KEY", "stream:station:event")) {
     parseRedisUrl(redisUrl_, host_, port_);
 }
 

@@ -13,5 +13,7 @@ public record StationEvent(
         boolean holdFlag,
         boolean reworkFlag,
         boolean bypassFlag,
+        /** PLC 异常代码，0 或 null 表示无异常（DB900.abnormal_code，V1.2 §3.2） */
+        Integer abnormalCode,
         OffsetDateTime plcTimestamp
 ) {}

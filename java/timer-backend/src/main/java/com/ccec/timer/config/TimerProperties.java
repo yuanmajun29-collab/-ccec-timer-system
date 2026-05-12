@@ -50,9 +50,11 @@ public class TimerProperties {
     }
 
     public static class Redis {
-        private String streamKey = "station:event:queue";
+        /** V8.4.1 / V1.2 §3.6：stream:station:event */
+        private String streamKey = "stream:station:event";
         private String consumerGroup = "timer-backend";
-        private String statusKeyPrefix = "station:status:";
+        /** 40 工位快照 Hash：hash:station:state，field=工位编码 */
+        private String stateHashKey = "hash:station:state";
 
         public String getStreamKey() {
             return streamKey;
@@ -70,12 +72,12 @@ public class TimerProperties {
             this.consumerGroup = consumerGroup;
         }
 
-        public String getStatusKeyPrefix() {
-            return statusKeyPrefix;
+        public String getStateHashKey() {
+            return stateHashKey;
         }
 
-        public void setStatusKeyPrefix(String statusKeyPrefix) {
-            this.statusKeyPrefix = statusKeyPrefix;
+        public void setStateHashKey(String stateHashKey) {
+            this.stateHashKey = stateHashKey;
         }
     }
 

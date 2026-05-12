@@ -26,7 +26,7 @@ Nginx + Mosquitto(可选 Broker)
 - 周期读取 PLC 镜像 DB。
 - 解析工位到达、离开、暂停、返修、旁通等信号。
 - 生成 `StationEvent`。
-- 发布到 Redis Stream/Queue。
+- 发布到 Redis Stream（默认键名 `stream:station:event`，与 V8.4.1 设计文档 §3.6 一致，可用 `REDIS_STREAM_KEY` 覆盖）。
 - 断线重连，异常事件本地落盘。
 
 当前工程提供模拟采集实现，方便容器化部署联调。
@@ -36,7 +36,7 @@ Nginx + Mosquitto(可选 Broker)
 - Spring Boot 提供 REST API、WebSocket 和状态机服务。
 - 根据工位事件维护 `StationContext`。
 - 计算标准 CT、已用时间、剩余时间和显示颜色。
-- 推送 `StationSnapshot` 到对应工位屏。
+- 推送 `STATE_UPDATE` JSON（与 V1.2 §3.8 字段一致）及 Redis 快照缓存到对应工位屏；MQTT 使用相同载荷。
 - 持久化工位、CT配置、生产记录、审计日志。
 
 ### 工位屏

@@ -13,6 +13,7 @@ struct StationEvent {
     bool holdFlag{};
     bool reworkFlag{};
     bool bypassFlag{};
+    int32_t abnormalCode{};
     std::string plcTimestamp;
 
     bool isValid(std::string& reason) const;

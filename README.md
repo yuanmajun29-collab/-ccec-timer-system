@@ -68,7 +68,7 @@ http://localhost/actuator/health
 
 ## 说明
 
-当前 C++ 采集端内置模拟事件，并将 JSON 事件写入 Redis Stream（`station:event:queue`，字段 `payload`），Java 端消费后驱动状态机、WebSocket 与 Oracle 记录。接入现场 PLC 时，在 `cpp/plc-collector/src/PlcClient.cpp` 中替换为厂商 SDK/Snap7 的只读采集实现，并保持与 `StationEvent` 相同的 JSON 字段。
+当前 C++ 采集端内置模拟事件，并将 JSON 事件写入 Redis Stream（默认 `stream:station:event`，字段 `payload`；可通过 `REDIS_STREAM_KEY` 覆盖），Java 端消费后驱动状态机、WebSocket（`STATE_UPDATE` 载荷）与 Oracle 记录。接入现场 PLC 时，在 `cpp/plc-collector/src/PlcClient.cpp` 中替换为厂商 SDK/Snap7 的只读采集实现，并保持与 `StationEvent` 相同的 JSON 字段（含可选 `abnormalCode`）。
 
 
 ## 生产级部署

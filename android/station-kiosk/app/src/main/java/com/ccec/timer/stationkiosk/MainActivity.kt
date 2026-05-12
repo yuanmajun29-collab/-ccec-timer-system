@@ -132,12 +132,20 @@ class MainActivity : AppCompatActivity() {
 
     private fun bindNative(state: StationUiState) {
         val s = state.snapshot
-        val remain = s.remain.coerceAtLeast(0)
-        val mm = (remain / 60).toString().padStart(2, '0')
-        val sec = (remain % 60).toString().padStart(2, '0')
-        textTimer.text = "$mm:$sec"
-        textMeta.text = "${s.so ?: "-"} / ${s.esn ?: "-"} / ${s.engineType ?: "-"}"
-        textStatus.text = s.status ?: "UNKNOWN"
+        val remain = s.remain
+        val timerText = if (remain < 0) {
+            val sec = kotlin.math.abs(remain)
+            val mm = (sec / 60).toString().padStart(2, '0')
+            val ss = (sec % 60).toString().padStart(2, '0')
+            "+$mm:$ss"
+        } else {
+            val mm = (remain / 60).toString().padStart(2, '0')
+            val ss = (remain % 60).toString().padStart(2, '0')
+            "$mm:$ss"
+        }
+        textTimer.text = timerText
+        textMeta.text = "${s.displaySo() ?: "-"} / ${s.displayEsn() ?: "-"} / ${s.engineType ?: "-"}"
+        textStatus.text = s.displayStatus() ?: "UNKNOWN"
         applyStatusColor(s.color)
         textBanner.text = when (state.source) {
             UiSource.LIVE -> getString(R.string.banner_live)
@@ -151,6 +159,7 @@ class MainActivity : AppCompatActivity() {
             "GREEN" -> Color.parseColor("#1a3d1a")
             "YELLOW" -> Color.parseColor("#4d4000")
             "RED" -> Color.parseColor("#4d1515")
+            "RED_FLASH" -> Color.parseColor("#4d1515")
             "BLUE" -> Color.parseColor("#152a4d")
             "PURPLE" -> Color.parseColor("#301540")
             else -> Color.parseColor("#333333")

@@ -1,7 +1,7 @@
 package com.ccec.timer.mqtt;
 
 import com.ccec.timer.config.TimerProperties;
-import com.ccec.timer.domain.StationSnapshot;
+import com.ccec.timer.ws.StateUpdateMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -65,7 +65,8 @@ public class MqttStationPublisher {
         }
     }
 
-    public void publishSnapshot(StationSnapshot snapshot) {
+    /** 与工位 WSS 使用同一 JSON 模型（如 {@link com.ccec.timer.ws.StateUpdateMessage}），便于安卓/WebView 统一解析。 */
+    public void publishJson(Object payload) {
         TimerProperties.Mqtt mqttProps = timerProperties.getMqtt();
         if (client == null || !client.isConnected()) {
             tryConnectOnce();
@@ -74,15 +75,23 @@ public class MqttStationPublisher {
             return;
         }
         try {
-            String topic = mqttProps.getTopicPrefix() + "/" + snapshot.stationCode() + "/snapshot";
-            byte[] payload = objectMapper.writeValueAsString(snapshot).getBytes(StandardCharsets.UTF_8);
-            MqttMessage msg = new MqttMessage(payload);
+            String stationCode = extractStationCode(payload);
+            String topic = mqttProps.getTopicPrefix() + "/" + stationCode + "/snapshot";
+            byte[] bytes = objectMapper.writeValueAsString(payload).getBytes(StandardCharsets.UTF_8);
+            MqttMessage msg = new MqttMessage(bytes);
             msg.setQos(mqttProps.getQos());
             msg.setRetained(mqttProps.isRetained());
             client.publish(topic, msg);
         } catch (Exception e) {
-            log.warn("MQTT publish failed for station {}: {}", snapshot.stationCode(), e.getMessage());
+            log.warn("MQTT publish failed: {}", e.getMessage());
         }
+    }
+
+    private static String extractStationCode(Object payload) {
+        if (payload instanceof StateUpdateMessage m && m.stationCode != null) {
+            return m.stationCode;
+        }
+        throw new IllegalArgumentException("Unsupported MQTT payload type: " + payload.getClass().getName());
     }
 
     private void tryConnectOnce() {

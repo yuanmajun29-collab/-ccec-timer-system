@@ -20,6 +20,8 @@ services:
       TIMER_MQTT_ENABLED: ${TIMER_MQTT_ENABLED:-true}
       TIMER_MQTT_BROKER_URI: ${TIMER_MQTT_BROKER_URI:-tcp://mosquitto:1883}
       TIMER_MQTT_TOPIC_PREFIX: ${TIMER_MQTT_TOPIC_PREFIX:-ccec/station}
+      TIMER_REDIS_STREAM_KEY: ${REDIS_STREAM_KEY:-stream:station:event}
+      TIMER_REDIS_STATE_HASH_KEY: ${TIMER_REDIS_STATE_HASH_KEY:-hash:station:state}
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health/readiness | grep -q UP"]
       interval: 15s

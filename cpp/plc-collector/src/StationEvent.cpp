@@ -24,6 +24,7 @@ std::string StationEvent::toJson() const {
        << "\"holdFlag\":" << (holdFlag ? "true" : "false") << ","
        << "\"reworkFlag\":" << (reworkFlag ? "true" : "false") << ","
        << "\"bypassFlag\":" << (bypassFlag ? "true" : "false") << ","
+       << "\"abnormalCode\":" << abnormalCode << ","
        << "\"plcTimestamp\":\"" << plcTimestamp << "\""
        << "}";
     return os.str();

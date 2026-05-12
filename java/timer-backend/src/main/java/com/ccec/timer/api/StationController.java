@@ -49,8 +49,8 @@ public class StationController {
      */
     @GetMapping("/{stationCode}/status-cache")
     public Map<String, Object> statusCache(@PathVariable String stationCode) {
-        String key = timerProperties.getRedis().getStatusKeyPrefix() + stationCode;
-        String json = redis.opsForValue().get(key);
+        String key = timerProperties.getRedis().getStateHashKey();
+        String json = redis.opsForHash().get(key, stationCode);
         if (json == null) {
             return Map.of("success", true, "code", "0", "message", "OK", "data", Map.of());
         }

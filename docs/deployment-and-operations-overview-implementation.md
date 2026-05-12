@@ -18,7 +18,7 @@
 | 方案要点 | 仓库实现位置 | 说明 |
 |----------|----------------|------|
 | PLC → 采集 → Redis Stream → Java | `cpp/plc-collector`、`RedisEventConsumer`、`StationEventStreamPoller` | C++ 现场需替换为 Snap7/SDK；采集发布 **XADD `payload` JSON** |
-| 状态机 + CT（DB 优先） | `StationStateMachine`、`JdbcCtSecondsResolver`、`T_CT_CONFIG` | `resolveCt` 已走 Oracle；阈值按 elapsed/standardCt 比例 |
+| 状态机 + CT（DB 优先） | `StationStateMachine`、`JdbcCtConfigResolver`、`T_CT_CONFIG` | Oracle 返回标准 CT 与黄/红阈值；无配置则 ABNORMAL（V1.2） |
 | WebSocket 工位屏 | `StationWebSocketHandler`、`frontend/station-screen` | `/?station=` + `/ws/station/{code}` |
 | Oracle 主数据 / 生产 / 告警 / 审计表 | Flyway `V1`～`V3`、`ProductionRecordRepository`、`AlarmRecordRepository`、`AuditLogService` | **方案中的 `T_EVENT_LOG` 未建表**，PLC 原始事件若需落库需后续 DDL |
 | 运营管理端 + 登录 | `frontend/admin-console`、Spring Security、管理 API `/api/v1/management/**` | 会话 + CSRF；默认管理员仅空库初始化 |
@@ -111,7 +111,7 @@
 |------|------|------------------|
 | **基础设施** | 主机、Docker、磁盘、网络 | `docker compose ps`、节点 exporter、cAdvisor |
 | **应用健康** | Java、Redis、Oracle、Nginx | `/actuator/health`、Redis ping、Oracle 连接 |
-| **业务链路** | PLC → 采集 → Stream → 后端 → WS/MQTT → 屏 | 日志关键字、`station:event:queue`、订阅 MQTT 测试 |
+| **业务链路** | PLC → 采集 → Stream → 后端 → WS/MQTT → 屏 | 日志关键字、`stream:station:event`、`hash:station:state`、订阅 MQTT 测试 |
 | **数据与安全** | Oracle 备份、账号、审计 | `backup-oracle.sh`、`T_AUDIT_LOG`、管理端改密 |
 | **观测与告警** | 指标、日志、告警路由 | Prometheus、Grafana、Loki、Alertmanager（prod 栈） |
 

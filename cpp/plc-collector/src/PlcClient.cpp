@@ -32,6 +32,7 @@ std::vector<StationEvent> PlcClient::pollMirrorDb() {
     e.so = "SO20260511001";
     e.esn = "ESN000123456";
     e.engineType = "QSK60";
+    e.abnormalCode = 0;
     e.arriveFlag = (mockSeq_ == 1);
     e.leaveFlag = (mockSeq_ == 12);
     e.plcTimestamp = "2026-05-11T14:30:15+08:00";

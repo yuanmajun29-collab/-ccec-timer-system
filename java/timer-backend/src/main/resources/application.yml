@@ -27,6 +27,6 @@ timer:
     qos: 1
     retained: true
   redis:
-    stream-key: station:event:queue
+    stream-key: stream:station:event
     consumer-group: timer-backend
-    status-key-prefix: "station:status:"
+    state-hash-key: hash:station:state

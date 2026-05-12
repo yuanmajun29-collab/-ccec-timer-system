@@ -11,6 +11,8 @@
     .timer{font-size:18vw;font-weight:900;letter-spacing:.04em}
     .meta{font-size:3vw;opacity:.9}
     .status{margin-top:2vh;padding:1vh 3vw;border-radius:2vw;background:#444;font-size:3vw;border:3px solid transparent}
+    .status.flash-red{animation:ccecFlashRed 1s ease-in-out infinite}
+    @keyframes ccecFlashRed{0%,100%{opacity:1}50%{opacity:0.45}}
     .hint{font-size:2.2vw;margin-top:2vh;opacity:.55}
   </style>
 </head>
@@ -32,25 +34,47 @@ let ws;
 let reconnectDelayMs = 1000;
 const maxDelayMs = 30000;
 
-function applySnapshot(data) {
-  const remain = Math.max(0, data.remain || 0);
-  const m = String(Math.floor(remain / 60)).padStart(2, '0');
-  const s = String(remain % 60).padStart(2, '0');
-  document.getElementById('timer').textContent = `${m}:${s}`;
-  document.getElementById('meta').textContent = `${data.so || '-'} / ${data.esn || '-'} / ${data.engineType || '-'}`;
+/** 兼容 V1.2 STATE_UPDATE 与旧版扁平快照 */
+function normalizeWsPayload(raw) {
+  if (raw && raw.type === 'STATE_UPDATE') return raw;
+  return raw;
+}
+
+function applySnapshot(raw) {
+  const data = normalizeWsPayload(raw);
+  const remain = Number(data.remain != null ? data.remain : 0);
+  let timerText;
+  if (remain < 0) {
+    const sec = Math.abs(remain);
+    const m = String(Math.floor(sec / 60)).padStart(2, '0');
+    const s = String(sec % 60).padStart(2, '0');
+    timerText = `+${m}:${s}`;
+  } else {
+    const m = String(Math.floor(remain / 60)).padStart(2, '0');
+    const s = String(remain % 60).padStart(2, '0');
+    timerText = `${m}:${s}`;
+  }
+  document.getElementById('timer').textContent = timerText;
+  const so = data.soNo != null && data.soNo !== '' ? data.soNo : (data.so || '-');
+  const esn = data.esnNo != null && data.esnNo !== '' ? data.esnNo : (data.esn || '-');
+  const engine = data.engineType || '-';
+  document.getElementById('meta').textContent = `${so} / ${esn} / ${engine}`;
   const st = document.getElementById('status');
-  st.textContent = data.status || 'UNKNOWN';
+  const statusText = data.state != null && data.state !== '' ? data.state : (data.status || 'UNKNOWN');
+  st.textContent = statusText;
   const colorMap = {
     GREEN: '#1a3d1a',
     YELLOW: '#4d4000',
     RED: '#4d1515',
+    RED_FLASH: '#4d1515',
     BLUE: '#152a4d',
     PURPLE: '#301540',
     GRAY: '#333'
   };
-  const bg = colorMap[data.color] || '#333';
-  st.style.background = bg;
-  st.style.borderColor = data.color === 'GREEN' ? '#3fb950' : data.color === 'YELLOW' ? '#d29922' : data.color === 'RED' ? '#f85149' : 'transparent';
+  const col = data.color || 'GRAY';
+  st.style.background = colorMap[col] || '#333';
+  st.classList.toggle('flash-red', col === 'RED_FLASH');
+  st.style.borderColor = col === 'GREEN' ? '#3fb950' : col === 'YELLOW' ? '#d29922' : (col === 'RED' || col === 'RED_FLASH') ? '#f85149' : 'transparent';
 }
 
 function setHint(msg) {
