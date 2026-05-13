@@ -4,6 +4,7 @@
 #include <fstream>
 #include <hiredis/hiredis.h>
 #include <iostream>
+#include <vector>
 
 static std::string envOrDefault(const char* name, const std::string& fallback) {
     const char* value = std::getenv(name);
@@ -35,7 +36,8 @@ bool EventPublisher::parseRedisUrl(const std::string& url, std::string& host, in
 
 EventPublisher::EventPublisher(std::string redisUrl)
     : redisUrl_(std::move(redisUrl)),
-      streamKey_(envOrDefault("REDIS_STREAM_KEY", "station:event:queue")) {
+      streamKey_(envOrDefault("REDIS_STREAM_KEY", "station:event:queue")),
+      pendingLogPath_(envOrDefault("PENDING_EVENT_LOG", "data/cache/pending-events.log")) {
     parseRedisUrl(redisUrl_, host_, port_);
 }
 
@@ -84,11 +86,89 @@ bool EventPublisher::ensureConnected() {
 
 void EventPublisher::appendPendingLog(const std::string& json) {
     std::error_code ec;
-    std::filesystem::create_directories("data/cache", ec);
-    std::ofstream out("data/cache/pending-events.log", std::ios::app);
+    const auto parent = std::filesystem::path(pendingLogPath_).parent_path();
+    if (!parent.empty()) {
+        std::filesystem::create_directories(parent, ec);
+    }
+    std::ofstream out(pendingLogPath_, std::ios::app);
     if (out) {
         out << json << '\n';
     }
+}
+
+bool EventPublisher::publishJsonToRedis(const std::string& json) {
+    redisReply* reply = (redisReply*)redisCommand(
+            ctx_,
+            "XADD %s * payload %s",
+            streamKey_.c_str(),
+            json.c_str());
+    if (reply == nullptr || ctx_->err) {
+        std::cerr << "[REDIS] XADD failed: " << (ctx_->err ? ctx_->errstr : "null reply") << std::endl;
+        if (reply) {
+            freeReplyObject(reply);
+        }
+        disconnect();
+        return false;
+    }
+    freeReplyObject(reply);
+    return true;
+}
+
+bool EventPublisher::flushPendingLog() {
+    const std::string replayPath = pendingLogPath_ + ".replay";
+    std::error_code ec;
+    const bool hasPending = std::filesystem::exists(pendingLogPath_);
+    const bool hasReplay = std::filesystem::exists(replayPath);
+    if (!hasPending && !hasReplay) {
+        return true;
+    }
+
+    if (hasPending) {
+        if (hasReplay) {
+            std::cerr << "[PENDING] replay file already exists, keeping pending log intact" << std::endl;
+            return false;
+        }
+        std::filesystem::rename(pendingLogPath_, replayPath, ec);
+        if (ec) {
+            std::cerr << "[PENDING] cannot rotate pending log: " << ec.message() << std::endl;
+            return false;
+        }
+    }
+
+    std::ifstream in(replayPath);
+    if (!in) {
+        std::cerr << "[PENDING] cannot read rotated pending log" << std::endl;
+        if (!std::filesystem::exists(pendingLogPath_)) {
+            std::filesystem::rename(replayPath, pendingLogPath_, ec);
+        }
+        return false;
+    }
+
+    std::vector<std::string> lines;
+    std::string line;
+    while (std::getline(in, line)) {
+        if (!line.empty()) {
+            lines.push_back(line);
+        }
+    }
+    in.close();
+
+    for (std::size_t i = 0; i < lines.size(); ++i) {
+        if (!publishJsonToRedis(lines[i])) {
+            for (std::size_t j = i; j < lines.size(); ++j) {
+                appendPendingLog(lines[j]);
+            }
+            std::filesystem::remove(replayPath, ec);
+            std::cerr << "[PENDING] replay interrupted, remaining events kept" << std::endl;
+            return false;
+        }
+    }
+
+    std::filesystem::remove(replayPath, ec);
+    if (!lines.empty()) {
+        std::cout << "[PENDING] replayed " << lines.size() << " event(s)" << std::endl;
+    }
+    return true;
 }
 
 bool EventPublisher::publish(const StationEvent& event) {
@@ -97,20 +177,13 @@ bool EventPublisher::publish(const StationEvent& event) {
         appendPendingLog(json);
         return false;
     }
-    redisReply* reply = (redisReply*)redisCommand(
-            ctx_,
-            "XADD %s * payload %s",
-            streamKey_.c_str(),
-            json.c_str());
-    if (reply == nullptr || ctx_->err) {
-        std::cerr << "[REDIS] XADD failed: " << (ctx_->err ? ctx_->errstr : "null reply") << std::endl;
+    if (!flushPendingLog()) {
         appendPendingLog(json);
-        disconnect();
-        if (reply) {
-            freeReplyObject(reply);
-        }
         return false;
     }
-    freeReplyObject(reply);
+    if (!publishJsonToRedis(json)) {
+        appendPendingLog(json);
+        return false;
+    }
     return true;
 }
