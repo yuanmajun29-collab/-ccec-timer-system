@@ -10,6 +10,11 @@ let prPage = 0;
 let auPage = 0;
 const prSize = 20;
 
+function previewText(s, max = 80) {
+  const text = String(s || '').replace(/\s+/g, ' ').trim();
+  return text.length > max ? text.slice(0, max) + '…' : text;
+}
+
 async function guardMe() {
   const r = await fetch('/api/v1/auth/me', { credentials: 'include' });
   if (!r.ok) {
@@ -33,7 +38,7 @@ function showTab(name) {
   document.querySelectorAll('aside nav button').forEach((b) => {
     b.classList.toggle('active', b.dataset.tab === name);
   });
-  ['stations', 'ct', 'alarms', 'production', 'audit'].forEach((t) => {
+  ['stations', 'ct', 'alarms', 'production', 'instructions', 'audit'].forEach((t) => {
     document.getElementById('tab-' + t).classList.toggle('hidden', t !== name);
   });
 }
@@ -241,6 +246,86 @@ async function loadProduction() {
     </tr>`).join('');
 }
 
+async function loadInstructions() {
+  const q = document.getElementById('wi-filter-station').value.trim();
+  const url = q
+    ? `/api/v1/management/work-instructions?stationCode=${encodeURIComponent(q)}`
+    : '/api/v1/management/work-instructions';
+  const r = await fetch(url, { credentials: 'include' });
+  if (!(await guardMgmt(r))) return;
+  const body = await r.json();
+  const rows = body.data.items || [];
+  const tb = document.querySelector('#wi-table tbody');
+  tb.innerHTML = rows.map((row) => `
+    <tr>
+      <td>${esc(row.stationCode)}</td>
+      <td>${esc(row.docNo)}</td>
+      <td>${esc(row.title)}</td>
+      <td>${esc(row.versionNo)}</td>
+      <td>${row.enabled ? '<span class="tag">启用</span>' : '<span class="tag">停用</span>'}</td>
+      <td>${esc(row.updatedAt || '—')}</td>
+      <td>
+        <div class="table-preview">${esc(previewText(row.contentText))}</div>
+        <button type="button" class="js-edit-wi" data-id="${row.id}">编辑</button>
+      </td>
+    </tr>`).join('');
+  tb.querySelectorAll('.js-edit-wi').forEach((btn) => {
+    btn.addEventListener('click', () => fillInstruction(rows.find((x) => String(x.id) === btn.dataset.id)));
+  });
+}
+
+function fillInstruction(row) {
+  document.getElementById('wi-id').value = row.id;
+  document.getElementById('wi-doc-no').value = row.docNo || '';
+  document.getElementById('wi-title').value = row.title || '';
+  document.getElementById('wi-station').value = row.stationCode || '';
+  document.getElementById('wi-engine').value = row.engineType || '';
+  document.getElementById('wi-version').value = row.versionNo || 'v1.0';
+  document.getElementById('wi-content').value = row.contentText || '';
+  document.getElementById('wi-safety').value = row.safetyNotes || '';
+  document.getElementById('wi-enabled').checked = !!row.enabled;
+}
+
+function clearInstruction() {
+  document.getElementById('wi-id').value = '';
+  document.getElementById('wi-doc-no').value = '';
+  document.getElementById('wi-title').value = '';
+  document.getElementById('wi-station').value = '';
+  document.getElementById('wi-engine').value = '';
+  document.getElementById('wi-version').value = 'v1.0';
+  document.getElementById('wi-content').value = '';
+  document.getElementById('wi-safety').value = '';
+  document.getElementById('wi-enabled').checked = true;
+}
+
+async function saveInstruction() {
+  const id = document.getElementById('wi-id').value;
+  const payload = {
+    docNo: document.getElementById('wi-doc-no').value.trim(),
+    title: document.getElementById('wi-title').value.trim(),
+    stationCode: document.getElementById('wi-station').value.trim(),
+    engineType: document.getElementById('wi-engine').value.trim() || null,
+    versionNo: document.getElementById('wi-version').value.trim(),
+    contentText: document.getElementById('wi-content').value.trim(),
+    safetyNotes: document.getElementById('wi-safety').value.trim() || null,
+    enabled: document.getElementById('wi-enabled').checked
+  };
+  const url = id ? `/api/v1/management/work-instructions/${id}` : '/api/v1/management/work-instructions';
+  const method = id ? 'PUT' : 'POST';
+  const r = await CcecApi.authFetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!(await guardMgmt(r))) return;
+  if (!r.ok) {
+    alert('保存失败');
+    return;
+  }
+  clearInstruction();
+  await loadInstructions();
+}
+
 async function loadAudit() {
   const r = await fetch(`/api/v1/management/audit-logs?page=${auPage}&size=${prSize}`, { credentials: 'include' });
   if (!(await guardMgmt(r))) return;
@@ -266,6 +351,7 @@ document.querySelectorAll('aside nav button').forEach((b) => {
     if (b.dataset.tab === 'ct') loadCt();
     if (b.dataset.tab === 'alarms') loadAlarms();
     if (b.dataset.tab === 'production') loadProduction();
+    if (b.dataset.tab === 'instructions') loadInstructions();
     if (b.dataset.tab === 'audit') loadAudit();
   });
 });
@@ -280,6 +366,10 @@ document.getElementById('ct-clear').addEventListener('click', clearCt);
 
 document.getElementById('al-reload').addEventListener('click', loadAlarms);
 document.getElementById('al-status').addEventListener('change', loadAlarms);
+
+document.getElementById('wi-reload').addEventListener('click', loadInstructions);
+document.getElementById('wi-save').addEventListener('click', saveInstruction);
+document.getElementById('wi-clear').addEventListener('click', clearInstruction);
 
 document.getElementById('pr-prev').addEventListener('click', () => {
   prPage = Math.max(0, prPage - 1);

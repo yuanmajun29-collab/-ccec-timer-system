@@ -152,5 +152,23 @@ table.data th { color: var(--muted); font-weight: 600; }
 }
 .form-grid label { font-size: .78rem; color: var(--muted); display: block; margin-bottom: .2rem; }
 .form-grid input { width: 100%; padding: .4rem .5rem; border-radius: 6px; border: 1px solid #334155; background: #0d1117; color: var(--text); }
+.form-stack { display: grid; gap: .75rem; }
+.form-stack label { font-size: .78rem; color: var(--muted); display: block; margin-bottom: .2rem; }
+.form-stack textarea {
+  width: 100%;
+  padding: .55rem .6rem;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  background: #0d1117;
+  color: var(--text);
+  resize: vertical;
+  min-height: 110px;
+  font-family: inherit;
+}
+.table-preview {
+  max-width: 420px;
+  white-space: pre-wrap;
+  color: var(--muted);
+}
 
 .hidden { display: none !important; }

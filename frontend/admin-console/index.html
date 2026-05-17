@@ -15,6 +15,7 @@
       <button type="button" data-tab="ct">CT 配置</button>
       <button type="button" data-tab="alarms">告警记录</button>
       <button type="button" data-tab="production">生产记录</button>
+      <button type="button" data-tab="instructions">作业指导书</button>
       <button type="button" data-tab="audit">审计日志</button>
     </nav>
     <div class="foot">
@@ -107,6 +108,44 @@
       </div>
       <table class="data" id="pr-table">
         <thead><tr><th>工位</th><th>SO</th><th>ESN</th><th>标准CT</th><th>实际CT</th><th>开始</th><th>结束</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section id="tab-instructions" class="hidden">
+      <h1>作业指导书</h1>
+      <div class="panel">
+        <h3>新增 / 编辑</h3>
+        <input type="hidden" id="wi-id">
+        <div class="form-grid">
+          <div><label>文档编号</label><input id="wi-doc-no" placeholder="WI-A601-001"></div>
+          <div><label>标题</label><input id="wi-title" placeholder="A601 缸体装配指导书"></div>
+          <div><label>工位编码</label><input id="wi-station" placeholder="A601"></div>
+          <div><label>机型（可选）</label><input id="wi-engine" placeholder="QSK60"></div>
+          <div><label>版本号</label><input id="wi-version" value="v1.0"></div>
+          <div><label>启用</label><input id="wi-enabled" type="checkbox" checked></div>
+        </div>
+        <div class="form-stack">
+          <div>
+            <label>作业步骤</label>
+            <textarea id="wi-content" rows="8" placeholder="1. 扫描 SO\n2. 确认 ESN\n3. 安装工装\n4. 扭矩复核"></textarea>
+          </div>
+          <div>
+            <label>安全注意事项</label>
+            <textarea id="wi-safety" rows="4" placeholder="佩戴护目镜；吊装时保持安全距离"></textarea>
+          </div>
+        </div>
+        <div class="toolbar" style="margin-top:.75rem">
+          <button type="button" id="wi-save">保存</button>
+          <button type="button" id="wi-clear">清空表单</button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <input id="wi-filter-station" placeholder="按工位筛选">
+        <button type="button" id="wi-reload">刷新</button>
+      </div>
+      <table class="data" id="wi-table">
+        <thead><tr><th>工位</th><th>编号</th><th>标题</th><th>版本</th><th>启用</th><th>更新时间</th><th></th></tr></thead>
         <tbody></tbody>
       </table>
     </section>
