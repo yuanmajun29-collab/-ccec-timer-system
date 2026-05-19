@@ -1,6 +1,6 @@
 # CCEC 工位倒计时系统
 
-基于 C++ + Java 的可部署工程版本，覆盖 PLC 采集、事件处理、状态机、WebSocket 推送、工位屏展示、Redis、Oracle 与 Nginx 入口。
+基于 C++ + Java 的可部署工程版本，覆盖 PLC 采集、事件处理、状态机、WebSocket 推送、工位屏展示、Redis、Oracle 与 edgebox-gate 统一入口。
 
 ## 目录结构
 
@@ -10,7 +10,7 @@ java/timer-backend       Java Spring Boot 后端
 frontend/station-screen  工位倒计时屏（现场显示终端，浏览器全屏）
 frontend/admin-console   运营管理控制台（工位/CT/告警/生产/审计）
 android/station-kiosk    安卓一体机（原生 MQTT + Room 离线缓存 + 设备遥测/指令，见 README）
-deploy/nginx             Nginx 反向代理配置
+deploy/edgebox-gate      边缘网关入口（Nginx 配置、入口清单、证书占位）
 deploy/scripts           一键启动/停止/日志脚本
 docs                     架构、设计与部署文档
 docker-compose.yml       本地/服务器容器化编排
@@ -64,7 +64,7 @@ http://localhost/actuator/health
 - C++：PLC S7 只读采集、镜像 DB 解析、事件去重、断线重连、本地落盘缓冲。
 - Java：CT 匹配、状态机、告警、REST 管理接口、WebSocket 推送、Oracle 持久化、审计。
 - Redis：事件队列、实时状态缓存、推送通道、健康状态。
-- Nginx：HTTP/HTTPS/WSS 统一入口。
+- edgebox-gate：HTTP/HTTPS/WSS 统一入口（Nginx 实现）。
 
 ## 说明
 

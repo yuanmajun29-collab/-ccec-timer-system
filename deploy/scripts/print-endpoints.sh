@@ -14,6 +14,8 @@ cat <<EOF
 工位屏:     ${BASE}/?station=A601
 管理控制台: ${BASE}/admin/
   登录页:   ${BASE}/admin/login.html
+网关健康:   ${BASE}/healthz
+入口清单:   ${BASE}/edgebox-gate/manifest.json
 后端直连:   http://127.0.0.1:${BACKEND_PORT}/actuator/health
 默认管理员: admin / Admin123! （仅空库首次创建，生产请改密）
 

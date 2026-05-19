@@ -1,0 +1,57 @@
+# CCEC Timer System · 项目宪法 v2.0
+
+## 📌 作用范围
+本文件适用于 `ccec-timer-system` 仓库内的全部代码与文档协作，目标是保证“采集链路稳定、状态机可追溯、现场展示可用、运维可观测”。
+
+## 🧱 当前技术栈（以仓库现状为准）
+- 采集端：C++17（`cpp/plc-collector`，CMake + hiredis）
+- 后端：Java 17 + Spring Boot 3.3（`java/timer-backend`）
+- 前端：工位屏 + 管理端静态资源（`frontend/station-screen`、`frontend/admin-console`）
+- 中间件：Redis、MQTT（Mosquitto）
+- 数据库：Oracle（容器内 `gvenzl/oracle-free:23-slim`）
+- 网关：Nginx（统一 HTTP/HTTPS/WSS 入口）
+- 部署：Docker Compose（开发 `docker-compose.yml`，生产增强 `docker-compose.prod.yml`）
+- 可观测：Prometheus + Alertmanager + Grafana + Loki + Promtail
+
+## 🗺 核心业务链路
+1. PLC 采集端读取设备状态，产出标准事件 JSON。
+2. 事件写入 Redis Stream（默认 `station:event:queue`）。
+3. Java 后端消费事件并驱动状态机、告警与业务落库（Oracle）。
+4. 后端通过 WebSocket 推送实时状态到工位屏。
+5. 管理端提供工位、CT、告警、生产、审计等配置与查询能力。
+
+## 📂 项目结构约定（本项目版）
+- `cpp/plc-collector`：PLC 采集、事件标准化、断线重连、发布
+- `java/timer-backend`：状态机、REST/WebSocket、安全、审计、迁移
+- `frontend/station-screen`：现场大屏展示
+- `frontend/admin-console`：运营管理控制台
+- `android/station-kiosk`：安卓终端能力
+- `deploy`：Nginx、脚本、监控、生产部署资源
+- `docs`：设计、部署、运维、决策记录（`docs/decisions`）
+
+## 🧭 编码与接口规范
+- **事件契约优先**：`StationEvent` 字段是跨语言契约，新增/修改字段必须同步 C++ 与 Java 解析逻辑并更新文档。
+- **API 稳定性**：管理端接口优先保持向后兼容；若必须破坏性变更，先写迁移说明与影响清单。
+- **错误处理**：后端统一结构化错误响应；日志中保留 requestId/站位号/关键上下文，避免仅输出堆栈。
+- **状态机变更**：任何状态转换规则调整，必须补充状态图或转换表，并给出回归验证步骤。
+- **安全基线**：禁止硬编码密钥；默认账号策略仅用于初始化，生产环境必须改密并可替换为企业目录（如 LDAP）。
+
+## 🧪 测试与验证要求
+- 改动 C++ 采集逻辑时，至少验证：连接失败重试、事件去重、Redis 发布可用。
+- 改动 Java 后端时，至少验证：`/actuator/health`、核心 REST、WebSocket 推送、Oracle 迁移/Flyway。
+- 改动前端时，至少验证：关键页面加载、实时状态刷新、异常态展示与回退。
+- 影响部署脚本或 Compose 配置时，必须给出一键启动与回滚步骤。
+
+## 🚀 部署与运维规则
+- 本地开发优先使用 `deploy/scripts/setup-local.sh` 或 `make setup`。
+- 日常启动使用 `deploy/scripts/bootstrap.sh` 或 `make up`。
+- 生产变更需同步检查：
+  - 健康检查与启动顺序（Redis/Oracle/Backend/Nginx）
+  - 监控采集目标是否完整（Prometheus targets）
+  - 日志链路是否可检索（Loki/Promtail）
+
+## 🤖 AI 协作规则（本项目）
+- 重大架构与流程变更先写 `docs/decisions` 再改代码。
+- 跨目录改动（C++/Java/前端/部署）必须在说明中给出“影响面 + 验证步骤”。
+- 新增依赖时必须说明必要性、替代方案、回滚方式。
+- 协同工具命令以 `coordinator` 为准（本机安装包 `agent-coordinator` 的 CLI 名称为 `coordinator`）。

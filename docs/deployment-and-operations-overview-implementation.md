@@ -55,14 +55,14 @@
 
 | 组件 | 角色 | 默认端口（可改 `.env`） |
 |------|------|-------------------------|
-| **nginx** | 静态工位页、管理端、`/api`、`/ws` 反代 | HTTP **80**（prod 可挂 **443**） |
+| **edgebox-gate（Nginx）** | 静态工位页、管理端、`/api`、`/ws` 反代、入口清单 | HTTP **80**（prod 可挂 **443**） |
 | **timer-backend** | Spring Boot、Flyway、WS、REST、MQTT 发布 | **8080**（直连健康检查） |
 | **redis** | Stream 队列、工位状态缓存 key | **6379** |
 | **oracle** | 开发/联调用镜像；生产常换为企业 Oracle | **1521** |
 | **plc-collector** | PLC 只读采集 → Redis | 无对外 HTTP |
 | **mosquitto** | MQTT Broker（安卓原生 / 后端发布） | **1883** |
 
-**依赖顺序（逻辑）**：Redis、Oracle 就绪 → Java 启动并完成迁移 → Nginx 依赖后端健康；采集依赖 Redis；**MQTT** 可与后端并行，后端内置重连。
+**依赖顺序（逻辑）**：Redis、Oracle 就绪 → Java 启动并完成迁移 → edgebox-gate 依赖后端健康；采集依赖 Redis；**MQTT** 可与后端并行，后端内置重连。
 
 **配置要点**
 
@@ -111,7 +111,7 @@
 | 层级 | 对象 | 主要工具 / 脚本 |
 |------|------|------------------|
 | **基础设施** | 主机、Docker、磁盘、网络 | `docker compose ps`、节点 exporter、cAdvisor |
-| **应用健康** | Java、Redis、Oracle、Nginx | `/actuator/health`、Redis ping、Oracle 连接 |
+| **应用健康** | Java、Redis、Oracle、edgebox-gate | `/healthz`、`/actuator/health`、Redis ping、Oracle 连接 |
 | **业务链路** | PLC → 采集 → Stream → 后端 → WS/MQTT → 屏 | 日志关键字、`station:event:queue`、`hash:station:state`、订阅 MQTT 测试 |
 | **数据与安全** | Oracle 备份、账号、审计 | `backup-oracle.sh`、`T_AUDIT_LOG`、管理端改密 |
 | **观测与告警** | 指标、日志、告警路由 | Prometheus、Grafana、Loki、Alertmanager（prod 栈） |
@@ -126,7 +126,7 @@
 
 ### 3.3 故障定位路径（简版）
 
-1. **全屏无刷新**：采集日志 → Redis Stream 是否有新消息 → Java 消费与 WS/MQTT 是否发布 → Nginx `/ws` 或 Mosquitto ACL。  
+1. **全屏无刷新**：采集日志 → Redis Stream 是否有新消息 → Java 消费与 WS/MQTT 是否发布 → edgebox-gate `/ws` 或 Mosquitto ACL。
 2. **仅安卓异常**：对比浏览器同工位；查 APK Broker 地址与 **TLS**；查 `telemetry` topic 是否上报。  
 3. **管理端 401/403**：会话过期、CSRF；LDAP 未上线时为本地账号策略。  
 4. **Oracle / Flyway**：先看后端启动日志与连接串一致性。

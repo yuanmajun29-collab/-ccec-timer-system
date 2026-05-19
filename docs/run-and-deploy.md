@@ -10,7 +10,7 @@
 | `oracle` | Oracle Free 23（开发/联调）；生产可换企业 Oracle |
 | `timer-backend` | Spring Boot：状态机、管理 API、WebSocket、Flyway |
 | `plc-collector` | C++ 采集（当前模拟 + Redis XADD） |
-| `nginx` | 工位屏静态页、管理控制台、`/api` `/ws` 反代 |
+| `edgebox-gate` | 边缘统一入口（Nginx 实现）、工位屏静态页、管理控制台、`/api` `/ws` 反代 |
 
 生产叠加 `docker-compose.prod.yml` 时另含：Prometheus、Grafana、Loki、Alertmanager、exporters 等。
 
@@ -88,6 +88,7 @@ make prod
 docker compose ps
 ./deploy/scripts/logs.sh
 ./deploy/scripts/logs.sh timer-backend
+./deploy/scripts/logs.sh edgebox-gate
 ./deploy/scripts/stop.sh
 ./deploy/scripts/print-endpoints.sh
 ```
@@ -105,6 +106,6 @@ docker compose ps
 ## 8. 与现场 Oracle / HTTPS 的衔接
 
 - **替换 Oracle**：改 `.env` 与 `timer-backend` 的 `SPRING_DATASOURCE_URL`（生产 compose 可通过环境变量注入），不再依赖 `oracle` 服务时可从 compose 中移除该服务并调整 `depends_on`。
-- **HTTPS/WSS**：在 Nginx 上配置证书（`deploy/nginx/certs` 已在 prod compose 中挂载占位），并统一使用 `https://` 访问；工位屏 WebSocket 会自动使用 `wss:`。
+- **HTTPS/WSS**：在 edgebox-gate 上配置证书（`deploy/edgebox-gate/certs` 已在 prod compose 中挂载占位），并统一使用 `https://` 访问；工位屏 WebSocket 会自动使用 `wss:`。
 
 更简版说明见：`docs/deployment.md`。

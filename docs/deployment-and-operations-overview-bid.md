@@ -38,7 +38,7 @@
 
 | 组件 | 作用 | 典型端口 |
 |------|------|----------|
-| nginx | 工位 H5、管理端、`/api`、`/ws` | 80 / 443 |
+| edgebox-gate（Nginx） | 工位 H5、管理端、`/api`、`/ws`、入口清单 | 80 / 443 |
 | timer-backend | 业务、Flyway、WS、REST、MQTT 发布 | 8080 |
 | redis | Stream、状态缓存 | 6379 |
 | oracle | 数据存储（生产多为企业库） | 1521 |
@@ -66,7 +66,7 @@
 | 层级 | 对象 | 典型手段 |
 |------|------|----------|
 | 基础设施 | 主机、Docker、磁盘 | compose ps、监控 exporter |
-| 应用 | Java、Redis、Oracle、Nginx | 健康检查、日志 |
+| 应用 | Java、Redis、Oracle、edgebox-gate | 健康检查、日志 |
 | 业务链路 | PLC→采集→Stream→后端→屏 | 分段日志与队列/MQTT 抽检 |
 | 数据与安全 | 备份、账号、审计 | 备份脚本、管理端操作留痕 |
 

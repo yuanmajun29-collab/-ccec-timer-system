@@ -41,7 +41,7 @@ IMAGE_TAG=latest ./deploy/scripts/prod-up.sh
 
 1. 检查 PLC 采集端日志。
 2. 检查 Redis 连接与 Stream 是否有新消息。
-3. **浏览器屏**：检查 WebSocket 是否被 Nginx 正确转发（`/ws/` Upgrade）。
+3. **浏览器屏**：检查 WebSocket 是否被 edgebox-gate 正确转发（`/ws/` Upgrade）。
 4. **安卓原生 MQTT**：检查 Mosquitto 是否可达（默认 **1883**）、`TIMER_MQTT_ENABLED`、topic 前缀与一体机设置一致；可用 `mosquitto_sub` 订阅 `ccec/station/<工位>/snapshot` 验证后端是否在发布。
 5. 现场联调时确认 PLC IP、rack、slot 与镜像 DB 映射。
 

@@ -53,7 +53,7 @@ check_port_free() {
   fi
 }
 
-check_port_free "HTTP (Nginx)" "$HTTP_PORT"
+check_port_free "HTTP (edgebox-gate)" "$HTTP_PORT"
 check_port_free "后端直连" "$BACKEND_PORT"
 check_port_free "Redis" "$REDIS_PORT"
 check_port_free "Oracle" "$ORACLE_PORT"

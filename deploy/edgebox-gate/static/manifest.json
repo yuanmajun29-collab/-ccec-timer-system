@@ -1,0 +1,17 @@
+{
+  "name": "edgebox-gate",
+  "role": "CCEC edge entrypoint",
+  "version": 1,
+  "routes": {
+    "stationScreen": "/?station=A601",
+    "adminConsole": "/admin/",
+    "adminLogin": "/admin/login.html",
+    "restApi": "/api/",
+    "webSocket": "/ws/station/{stationCode}",
+    "health": "/healthz",
+    "backendHealth": "/actuator/health"
+  },
+  "upstreams": {
+    "timerBackend": "timer-backend:8080"
+  }
+}

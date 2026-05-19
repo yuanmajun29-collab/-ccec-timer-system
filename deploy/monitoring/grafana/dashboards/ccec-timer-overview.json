@@ -82,7 +82,7 @@
       },
       "targets": [
         {
-          "expr": "{service=~\"timer-backend|plc-collector|nginx|redis|oracle\"}",
+          "expr": "{service=~\"timer-backend|plc-collector|edgebox-gate|redis|oracle\"}",
           "refId": "A"
         }
       ]

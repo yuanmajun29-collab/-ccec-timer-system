@@ -13,7 +13,7 @@ Redis Stream
    ↓ 消费/缓存
 Java timer-backend
    ↓ WebSocket / MQTT(retained 快照) / REST
-Nginx + Mosquitto(可选 Broker)
+edgebox-gate(Nginx) + Mosquitto(可选 Broker)
    ↓
 工位浏览器屏 / 安卓一体机(APK) / 管理端
 ```
@@ -70,7 +70,7 @@ java/timer-backend/src/main/resources/db/migration/V1__init_oracle.sql
 - Oracle Free：开发/测试数据库。
 - timer-backend：Java 服务。
 - plc-collector：C++ 采集服务。
-- Nginx：统一入口。
+- edgebox-gate：统一入口（Nginx 实现）。
 
 生产环境可替换 Oracle 为现场正式库，并将 Redis 升级为主从/哨兵模式。
 
@@ -79,7 +79,7 @@ java/timer-backend/src/main/resources/db/migration/V1__init_oracle.sql
 - PLC 采集必须只读，不允许写 DB 或写变量。
 - 管理接口后续接入 AD/LDAP。
 - 所有配置变更写入审计日志。
-- Nginx 生产环境启用 HTTPS/WSS。
+- edgebox-gate 生产环境启用 HTTPS/WSS。
 - Redis 和 Oracle 生产环境启用强密码和网络隔离。
 
 ## 6. 开发落地计划
