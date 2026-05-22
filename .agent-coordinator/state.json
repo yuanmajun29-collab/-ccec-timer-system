@@ -1,0 +1,32 @@
+{
+  "state": {
+    "CCEC_GATEWAY_REFACTOR": {
+      "value": "modular-snippets+https",
+      "previous_value": "none",
+      "set_by": "hermes",
+      "tool": "hermes",
+      "setBy": "yuanmartin",
+      "version": 1,
+      "timestamp": "2026-05-22T00:46:04.074Z",
+      "reason": "Nginx 网关配置拆分为独立 snippets，新增 HTTPS 配置，补齐治理文件，commit cb00064",
+      "files_affected": []
+    },
+    "CCEC_GOVERNANCE_BASELINE": {
+      "value": "complete-6hooks-agents-gemini",
+      "previous_value": "4-hooks-missing-agents-gemini",
+      "set_by": "hermes",
+      "tool": "hermes",
+      "setBy": "yuanmartin",
+      "version": 1,
+      "timestamp": "2026-05-22T00:46:13.530Z",
+      "reason": "补齐 AGENTS.md / GEMINI.md / .cursor/rules/ / 6 coordinator hooks",
+      "files_affected": []
+    }
+  },
+  "metadata": {
+    "schema_version": "1.0",
+    "last_updated": "2026-05-22T00:46:13.531Z",
+    "git_branch": "main",
+    "git_commit": "cb00064e643f3df9a5e4706ae294f2d6f8cc00bd"
+  }
+}
