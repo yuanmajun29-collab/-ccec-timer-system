@@ -104,6 +104,6 @@ SMTP 参数在 `.env` 中配置。生产环境建议接入企业邮箱、钉钉/
 
 - 修改 `.env` 中所有默认密码。
 - 生产环境只开放 80/443，Grafana/Prometheus/Alertmanager 建议仅内网或 VPN 访问。
-- HTTPS 证书放置在 `deploy/edgebox-gate/certs`，并更新 edgebox-gate 配置。
+- HTTPS 证书放置为 `deploy/edgebox-gate/certs/tls.crt` 与 `deploy/edgebox-gate/certs/tls.key`；生产编排会加载 `deploy/edgebox-gate/ccec-timer-https.conf`。
 - Oracle、Redis 不建议暴露公网端口。
 - 定期验证备份文件可恢复。

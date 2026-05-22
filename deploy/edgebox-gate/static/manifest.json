@@ -1,7 +1,7 @@
 {
   "name": "edgebox-gate",
   "role": "CCEC edge entrypoint",
-  "version": 1,
+  "version": 2,
   "routes": {
     "stationScreen": "/?station=A601",
     "adminConsole": "/admin/",
@@ -13,5 +13,10 @@
   },
   "upstreams": {
     "timerBackend": "timer-backend:8080"
+  },
+  "tls": {
+    "productionConfig": "ccec-timer-https.conf",
+    "certificate": "/etc/nginx/certs/tls.crt",
+    "certificateKey": "/etc/nginx/certs/tls.key"
   }
 }

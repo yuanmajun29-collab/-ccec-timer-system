@@ -80,7 +80,7 @@ for ($i = 0; $i -lt 120; $i++) {
 make prod
 ```
 
-会合并 `docker-compose.yml` 与 `docker-compose.prod.yml`。首次请配置 `.env` 中 `REGISTRY` / `IMAGE_NAMESPACE` / `IMAGE_TAG`、Grafana 密码、SMTP 等。
+会合并 `docker-compose.yml` 与 `docker-compose.prod.yml`。首次请先放置 `deploy/edgebox-gate/certs/tls.crt` 与 `deploy/edgebox-gate/certs/tls.key`，并配置 `.env` 中 `REGISTRY` / `IMAGE_NAMESPACE` / `IMAGE_TAG`、Grafana 密码、SMTP 等。
 
 ## 6. 常用运维
 
@@ -106,6 +106,6 @@ docker compose ps
 ## 8. 与现场 Oracle / HTTPS 的衔接
 
 - **替换 Oracle**：改 `.env` 与 `timer-backend` 的 `SPRING_DATASOURCE_URL`（生产 compose 可通过环境变量注入），不再依赖 `oracle` 服务时可从 compose 中移除该服务并调整 `depends_on`。
-- **HTTPS/WSS**：在 edgebox-gate 上配置证书（`deploy/edgebox-gate/certs` 已在 prod compose 中挂载占位），并统一使用 `https://` 访问；工位屏 WebSocket 会自动使用 `wss:`。
+- **HTTPS/WSS**：生产编排会使用 `deploy/edgebox-gate/ccec-timer-https.conf`。上线前将企业证书放到 `deploy/edgebox-gate/certs/tls.crt`，私钥放到 `deploy/edgebox-gate/certs/tls.key`；HTTP `/healthz` 保留给容器健康检查，其余 HTTP 请求会跳转到 HTTPS。工位屏 WebSocket 会自动使用 `wss:`。
 
 更简版说明见：`docs/deployment.md`。

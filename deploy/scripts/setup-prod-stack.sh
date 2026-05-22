@@ -9,6 +9,16 @@ set -a
 . ./.env
 set +a
 
+TLS_CERT="$ROOT/deploy/edgebox-gate/certs/tls.crt"
+TLS_KEY="$ROOT/deploy/edgebox-gate/certs/tls.key"
+if [[ ! -f "$TLS_CERT" || ! -f "$TLS_KEY" ]]; then
+  echo "生产网关默认启用 HTTPS，请先放置证书文件：" >&2
+  echo "  $TLS_CERT" >&2
+  echo "  $TLS_KEY" >&2
+  echo "如需临时使用 HTTP，请改用 docker-compose.yml 或调整 docker-compose.prod.yml 的 edgebox-gate 配置。" >&2
+  exit 1
+fi
+
 "$ROOT/deploy/scripts/prerequisites.sh"
 
 COMPOSE_FILES=( -f docker-compose.yml -f docker-compose.prod.yml )

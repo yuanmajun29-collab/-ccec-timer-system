@@ -54,7 +54,8 @@ services:
       - "${HTTP_PORT:-80}:80"
       - "${HTTPS_PORT:-443}:443"
     volumes:
-      - ./deploy/edgebox-gate/ccec-timer.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./deploy/edgebox-gate/ccec-timer-https.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./deploy/edgebox-gate/snippets:/etc/nginx/snippets/ccec-timer:ro
       - ./deploy/edgebox-gate/static:/usr/share/nginx/edgebox-gate:ro
       - ./frontend/station-screen:/usr/share/nginx/html:ro
       - ./frontend/admin-console:/usr/share/nginx/admin:ro

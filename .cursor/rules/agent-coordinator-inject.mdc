@@ -1,0 +1,20 @@
+---
+description: Run Agent Coordinator context inject before starting a Cursor agent
+globs:
+alwaysApply: true
+---
+
+Before starting an agent in this project, run coordinator context so the
+agent sees shared state:
+
+```bash
+node .agent-coordinator/hooks/cursor.js
+```
+
+Equivalent: `npx coordinator context inject cursor`
+
+When you change a shared state value, record it:
+
+```bash
+coordinator state set <KEY> <OLD> <NEW> --tool cursor --reason "<why>"
+```

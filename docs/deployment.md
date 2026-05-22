@@ -54,7 +54,7 @@ docker compose ps
 ## 生产部署建议
 
 1. Oracle 可替换为工厂现有 Oracle，修改 `.env` 与 `SPRING_DATASOURCE_URL`。
-2. edgebox-gate 生产环境应启用 HTTPS，并配置企业证书。
+2. edgebox-gate 生产编排默认启用 HTTPS；证书放置为 `deploy/edgebox-gate/certs/tls.crt` 与 `deploy/edgebox-gate/certs/tls.key`。
 3. PLC 上线前必须将 C++ `PlcClient` 的模拟采集替换为 Snap7/厂商 SDK 只读采集实现。
 4. Redis 生产环境建议启用密码、持久化和主从/哨兵。
 5. 所有容器日志接入统一日志平台，保留操作审计和告警记录。
